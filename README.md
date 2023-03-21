@@ -1,8 +1,10 @@
 # wx_zip_tutorial
 
-A template for multiplatform WxWidgets projects using CMake
+Compressing data in C++ using wxWidgets (on Windows/Mac/Linux).
 
-For details see the [blog post](https://www.justdevtutorials.com/post/wxwidgets-cmake/) and the [video](https://www.youtube.com/watch?v=MfuBS9n5_aY) tutorial showcasing installation on Linux, Windows and Mac OS X. 
+See: https://www.youtube.com/channel/UC4Q-KGKCeFbBpaAqwllCDqQ
+
+![Paint App](/app.png)
 
 ---
 Check out the blog for more! [www.justdevtutorials.com](https://www.justdevtutorials.com)
