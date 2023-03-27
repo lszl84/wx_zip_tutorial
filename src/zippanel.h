@@ -67,9 +67,10 @@ void ZipPanel::SetupDirectoryLoadSection()
                         if (dialog.ShowModal() == wxID_OK)
                         {
                             dirToCompressText->SetValue(dialog.GetPath());
-                            
+
                             LoadFilesToCompress();
-                        } });
+                        }
+                    });
 }
 
 void ZipPanel::SetupFileListSection()
@@ -117,23 +118,25 @@ void ZipPanel::SetupFileListSection()
 
     ignoredAddButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent &event)
                            {
-        wxTextEntryDialog dialog(this, "Enter the directory name to ignore", "Add ignored directory");
-        if (dialog.ShowModal() == wxID_OK)
-        {
-            ignoredList->InsertItem(ignoredList->GetItemCount(), dialog.GetValue());
+                               wxTextEntryDialog dialog(this, "Enter the directory name to ignore", "Add ignored directory");
+                               if (dialog.ShowModal() == wxID_OK)
+                               {
+                                   ignoredList->InsertItem(ignoredList->GetItemCount(), dialog.GetValue());
 
-            LoadFilesToCompress();
-        } });
+                                   LoadFilesToCompress();
+                               }
+                           });
 
     ignoredRemoveButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent &event)
                               {
-        long item = ignoredList->GetFirstSelected();
-        if (item >= 0)
-        {
-            ignoredList->DeleteItem(item);
+                                  long item = ignoredList->GetFirstSelected();
+                                  if (item >= 0)
+                                  {
+                                      ignoredList->DeleteItem(item);
 
-            LoadFilesToCompress();
-        } });
+                                      LoadFilesToCompress();
+                                  }
+                              });
 
     ignoredRemoveButton->Disable();
 
@@ -170,7 +173,8 @@ void ZipPanel::SetupCompressSection()
                             if (dialog.ShowModal() == wxID_OK)
                             {
                                 zipFileText->SetValue(dialog.GetPath());
-                            } });
+                            }
+                        });
 
     startButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent &event)
                       {
@@ -185,7 +189,8 @@ void ZipPanel::SetupCompressSection()
                           else
                           {
                               this->PerformCompression();
-                          } });
+                          }
+                      });
 }
 
 void ZipPanel::LoadFilesToCompress()

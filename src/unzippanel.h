@@ -97,27 +97,30 @@ void UnZipPanel::SetupUnZipSection()
                                       return;
                                   }
 
-                                  zipFileText->SetValue(openFileDialog.GetPath()); });
+                                  zipFileText->SetValue(openFileDialog.GetPath());
+                              });
 
     setOutputDirButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent &event)
                              {
-                                    wxDirDialog dirDialog(this, "Select output directory", "", wxDD_DEFAULT_STYLE | wxDD_NEW_DIR_BUTTON);
-    
-                                    if (dirDialog.ShowModal() == wxID_CANCEL)
-                                    {
-                                        return;
-                                    }
-    
-                                    outputDirText->SetValue(dirDialog.GetPath()); });
+                                 wxDirDialog dirDialog(this, "Select output directory", "", wxDD_DEFAULT_STYLE | wxDD_NEW_DIR_BUTTON);
+
+                                 if (dirDialog.ShowModal() == wxID_CANCEL)
+                                 {
+                                     return;
+                                 }
+
+                                 outputDirText->SetValue(dirDialog.GetPath());
+                             });
 
     singleFileCheckBox->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent &event)
                              {
                                  singleFileText->Enable(event.IsChecked());
 
-                                    if (event.IsChecked())
-                                    {
-                                        singleFileText->SetFocus();
-                                    } });
+                                 if (event.IsChecked())
+                                 {
+                                     singleFileText->SetFocus();
+                                 }
+                             });
 
     unzipButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent &event)
                       { PerformUnzip(); });
