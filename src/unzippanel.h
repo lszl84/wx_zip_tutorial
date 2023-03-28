@@ -20,14 +20,14 @@ struct UnZipPanel : public wxPanel
 
     wxTextCtrl *zipFileText;
     wxTextCtrl *outputDirText;
-
     wxTextCtrl *singleFileText;
-
     wxCheckBox *singleFileCheckBox;
 
     void SetupUnZipSection();
 
-    void PerformUnzip();
+    void PerformUnZip();
+    void UnZipAllFiles();
+    void UnZipSingleFile();
 };
 
 UnZipPanel::UnZipPanel(wxWindow *parent) : wxPanel(parent)
@@ -97,8 +97,7 @@ void UnZipPanel::SetupUnZipSection()
                                       return;
                                   }
 
-                                  zipFileText->SetValue(openFileDialog.GetPath());
-                              });
+                                  zipFileText->SetValue(openFileDialog.GetPath()); });
 
     setOutputDirButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent &event)
                              {
@@ -109,8 +108,7 @@ void UnZipPanel::SetupUnZipSection()
                                      return;
                                  }
 
-                                 outputDirText->SetValue(dirDialog.GetPath());
-                             });
+                                 outputDirText->SetValue(dirDialog.GetPath()); });
 
     singleFileCheckBox->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent &event)
                              {
@@ -123,10 +121,10 @@ void UnZipPanel::SetupUnZipSection()
                              });
 
     unzipButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent &event)
-                      { PerformUnzip(); });
+                      { PerformUnZip(); });
 }
 
-void UnZipPanel::PerformUnzip()
+void UnZipPanel::PerformUnZip()
 {
     if (zipFileText->GetValue().IsEmpty() || outputDirText->GetValue().IsEmpty())
     {
@@ -134,84 +132,94 @@ void UnZipPanel::PerformUnzip()
         return;
     }
 
-    if (!singleFileCheckBox->IsChecked())
+    if (singleFileCheckBox->IsChecked())
     {
-        wxProgressDialog progressDialog("Unzipping", "Unzipping file...", 100, this, wxPD_APP_MODAL | wxPD_AUTO_HIDE);
+        UnZipSingleFile();
+    }
+    else
+    {
+        UnZipAllFiles();
+    }
+}
 
-        wxFileInputStream inStream(zipFileText->GetValue());
-        wxZipInputStream zipIn(inStream);
-        std::unique_ptr<wxZipEntry> entry(zipIn.GetNextEntry());
+void UnZipPanel::UnZipAllFiles()
+{
+    wxProgressDialog progressDialog("Unzipping", "Unzipping file...", 100, this, wxPD_APP_MODAL | wxPD_AUTO_HIDE);
 
-        while (entry)
+    wxFileInputStream inStream(zipFileText->GetValue());
+    wxZipInputStream zipIn(inStream);
+    std::unique_ptr<wxZipEntry> entry(zipIn.GetNextEntry());
+
+    while (entry)
+    {
+        progressDialog.Pulse();
+
+        wxString entryName = entry->GetName();
+
+        wxFileName destFileName = outputDirText->GetValue() + wxFileName::GetPathSeparator() + entryName;
+        bool isFile = !entry->IsDir();
+
+        if (!wxDirExists(destFileName.GetPath()))
         {
-            progressDialog.Pulse();
+            wxFileName::Mkdir(destFileName.GetPath(), wxS_DIR_DEFAULT, wxPATH_MKDIR_FULL);
+        }
 
-            wxString entryName = entry->GetName();
+        if (isFile)
+        {
+            if (!zipIn.CanRead())
+            {
+                wxLogError("Couldn't read the zip entry '%s'.", entry->GetName());
+                return;
+            }
 
-            wxFileName destFileName = outputDirText->GetValue() + wxFileName::GetPathSeparator() + entryName;
-            bool isFile = !entry->IsDir();
+            wxFileOutputStream outStream(destFileName.GetFullPath());
 
+            if (!outStream.IsOk())
+            {
+                wxLogError("Couldn't create the file '%s'.", destFileName.GetFullPath());
+                return;
+            }
+
+            zipIn.Read(outStream);
+
+            zipIn.CloseEntry();
+            outStream.Close();
+        }
+
+        entry.reset(zipIn.GetNextEntry());
+    }
+}
+
+void UnZipPanel::UnZipSingleFile()
+{
+    if (singleFileText->GetValue().IsEmpty())
+    {
+        wxMessageBox("Please enter a file name to extract.", "Error", wxOK | wxICON_ERROR);
+        return;
+    }
+
+    wxFileSystem fs;
+    std::unique_ptr<wxFSFile> zip(fs.OpenFile(zipFileText->GetValue() + "#zip:" + singleFileText->GetValue()));
+
+    if (zip)
+    {
+        wxInputStream *in = zip->GetStream();
+
+        if (in)
+        {
+            wxFileName destFileName = outputDirText->GetValue() + wxFileName::GetPathSeparator() + singleFileText->GetValue();
             if (!wxDirExists(destFileName.GetPath()))
             {
                 wxFileName::Mkdir(destFileName.GetPath(), wxS_DIR_DEFAULT, wxPATH_MKDIR_FULL);
             }
 
-            if (isFile)
-            {
-                if (!zipIn.CanRead())
-                {
-                    wxLogError("Couldn't read the zip entry '%s'.", entry->GetName());
-                    return;
-                }
-
-                wxFileOutputStream outStream(destFileName.GetFullPath());
-
-                if (!outStream.IsOk())
-                {
-                    wxLogError("Couldn't create the file '%s'.", destFileName.GetFullPath());
-                    return;
-                }
-
-                zipIn.Read(outStream);
-
-                zipIn.CloseEntry();
-                outStream.Close();
-            }
-
-            entry.reset(zipIn.GetNextEntry());
+            wxFileOutputStream out(destFileName.GetFullPath());
+            out.Write(*in);
+            out.Close();
         }
     }
     else
     {
-        if (singleFileText->GetValue().IsEmpty())
-        {
-            wxMessageBox("Please enter a file name to extract.", "Error", wxOK | wxICON_ERROR);
-            return;
-        }
-
-        wxFileSystem fs;
-        std::unique_ptr<wxFSFile> zip(fs.OpenFile(zipFileText->GetValue() + "#zip:" + singleFileText->GetValue()));
-
-        if (zip)
-        {
-            wxInputStream *in = zip->GetStream();
-
-            if (in)
-            {
-                wxFileName destFileName = outputDirText->GetValue() + wxFileName::GetPathSeparator() + singleFileText->GetValue();
-                if (!wxDirExists(destFileName.GetPath()))
-                {
-                    wxFileName::Mkdir(destFileName.GetPath(), wxS_DIR_DEFAULT, wxPATH_MKDIR_FULL);
-                }
-
-                wxFileOutputStream out(destFileName.GetFullPath());
-                out.Write(*in);
-                out.Close();
-            }
-        }
-        else
-        {
-            wxMessageBox("File not found in zip.", "Error", wxOK | wxICON_ERROR);
-        }
+        wxMessageBox("File not found in zip.", "Error", wxOK | wxICON_ERROR);
     }
 }
