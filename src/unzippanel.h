@@ -97,7 +97,8 @@ void UnZipPanel::SetupUnZipSection()
                                       return;
                                   }
 
-                                  zipFileText->SetValue(openFileDialog.GetPath()); });
+                                  zipFileText->SetValue(openFileDialog.GetPath());
+                              });
 
     setOutputDirButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent &event)
                              {
@@ -108,7 +109,8 @@ void UnZipPanel::SetupUnZipSection()
                                      return;
                                  }
 
-                                 outputDirText->SetValue(dirDialog.GetPath()); });
+                                 outputDirText->SetValue(dirDialog.GetPath());
+                             });
 
     singleFileCheckBox->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent &event)
                              {
