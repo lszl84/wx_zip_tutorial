@@ -20,8 +20,6 @@ public:
 
 bool MyApp::OnInit()
 {
-    wxFileSystem::AddHandler(new wxZipFSHandler);
-
     MyFrame *frame = new MyFrame("Hello World", wxDefaultPosition, wxDefaultSize);
     frame->Show(true);
     return true;
@@ -42,4 +40,6 @@ MyFrame::MyFrame(const wxString &title, const wxPoint &pos, const wxSize &size)
 
     this->SetSize(FromDIP(wxSize(700, 600)));
     this->SetMinSize(FromDIP(wxSize(600, 500)));
+
+    this->SetBackgroundColour(tabs->GetBackgroundColour());
 }
